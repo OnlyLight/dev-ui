@@ -1,0 +1,33 @@
+name: wf_fe_build
+
+on:
+  push:
+    branches: ["main"]
+    # paths:
+    #   - "website/**"
+
+jobs:
+  build:
+    name: Build Image BE
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      IMAGE_TAG: $(git rev-parse --short HEAD)
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Login to Dockerhub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.DOCKER_URL }}
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ vars.DOCKER_USERNAME }}/crawler-website:${{ env.IMAGE_TAG }} ./website
+      
+      - name: Push Docker Image
+        run: |
+          docker push ${{ vars.DOCKER_USERNAME }}/crawler-website:${{ env.IMAGE_TAG }}
