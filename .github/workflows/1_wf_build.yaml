@@ -27,7 +27,9 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t ${{ vars.DOCKER_USERNAME }}/crawler-website:${{ env.IMAGE_TAG }} ./website
+          docker tag ${{ vars.DOCKER_USERNAME }}/crawler-website:${{ env.IMAGE_TAG }} ${{ vars.DOCKER_USERNAME }}/crawler-website:latest
       
       - name: Push Docker Image
         run: |
+          docker push ${{ vars.DOCKER_USERNAME }}/crawler-website:latest
           docker push ${{ vars.DOCKER_USERNAME }}/crawler-website:${{ env.IMAGE_TAG }}
