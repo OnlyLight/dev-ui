@@ -3,8 +3,8 @@ name: wf_fe_build
 on:
   push:
     branches: ["main"]
-    paths:
-      - "website/**"
+    # paths:
+    #   - "website/**"
 
 jobs:
   build:
