@@ -3,8 +3,8 @@ name: wf_fe_build
 on:
   push:
     branches: ["main"]
-    # paths:
-    #   - "website/**"
+    paths:
+      - "website/**"
 
 jobs:
   build:
@@ -23,6 +23,12 @@ jobs:
           registry: ${{ vars.DOCKER_URL }}
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Overwrite .env file variables
+        run: |
+          echo "${{ vars['ENVVAR_WEBSITE'] }}" >> ./website/.env
+
+          cat ./website/.env
 
       - name: Build Docker Image
         run: |
