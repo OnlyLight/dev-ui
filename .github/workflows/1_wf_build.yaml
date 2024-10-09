@@ -26,7 +26,7 @@ jobs:
 
       - name: Overwrite .env file variables
         run: |
-          echo "${{ vars['ENVVAR_WEBSITE'] }}" >> ./website/.env
+          echo "${{ vars['ENVVAR_WEBSITE'] }}" > ./website/.env
 
           cat ./website/.env
 
