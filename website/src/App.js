@@ -42,8 +42,7 @@ const Blog = () => {
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Headers": "*"
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             query: searchQuery,
