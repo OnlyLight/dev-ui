@@ -9,7 +9,7 @@ import CardMedia from '@mui/material/CardMedia';
 import Link from '@mui/material/Link';
 
 function FeaturedPost(props) {
-  const { post } = props;
+  const { post, index } = props;
 
   return (
     <Grid item xs={12} md={6}>
@@ -32,7 +32,7 @@ function FeaturedPost(props) {
           <CardMedia
             component="img"
             sx={{ width: 160, display: { xs: 'none', sm: 'block' } }}
-            image="https://loremflickr.com/160/250"
+            image={`https://loremflickr.com/160/250?random=${index}`}
             alt="website"
           />
         </Card>

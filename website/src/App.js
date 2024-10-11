@@ -44,7 +44,7 @@ const Blog = () => {
         <main>
           <MainFeaturedPost post={mainFeaturedPost} />
           <Grid container spacing={4}>
-            {featuredPosts.map((post) => <FeaturedPost key={post.title} post={post} />)}
+            {featuredPosts.map((post, idx) => <FeaturedPost key={post.title} index={idx} post={post} />)}
           </Grid>
         </main>
       </Container>
