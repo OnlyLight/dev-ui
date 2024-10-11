@@ -17,8 +17,6 @@ const sections = [
 const Blog = () => {
   const [mainFeaturedPost, setMainFeaturedPost] = useState([]);
   const [featuredPosts, setFeaturedPosts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchData, setSearchData] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,27 +33,6 @@ const Blog = () => {
     fetchData();
   }, []);
 
-  const onSearch = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/posts/search`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            query: searchQuery,
-          }),
-        }
-      );
-      const searchData = await response.json();
-      setSearchData(searchData);
-    } catch (error) {
-      console.error("Error searching:", error);
-    }
-  };
-
   return (
     <ThemeProvider theme={createTheme()}>
       <CssBaseline />
@@ -63,21 +40,11 @@ const Blog = () => {
         <Header
           title="Crawler System"
           sections={sections}
-          onSearch={onSearch}
-          setSearchQuery={setSearchQuery}
         />
         <main>
           <MainFeaturedPost post={mainFeaturedPost} />
           <Grid container spacing={4}>
-            {featuredPosts.map((post) => {
-              if (searchData.length === 0) {
-                return <FeaturedPost key={post.title} post={post} />;
-              } else if (searchData.includes(post.id)) {
-                return <FeaturedPost key={post.title} post={post} />;
-              }
-
-              return null;
-            })}
+            {featuredPosts.map((post) => <FeaturedPost key={post.title} post={post} />)}
           </Grid>
         </main>
       </Container>
