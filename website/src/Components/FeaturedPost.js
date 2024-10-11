@@ -32,7 +32,7 @@ function FeaturedPost(props) {
           <CardMedia
             component="img"
             sx={{ width: 160, display: { xs: 'none', sm: 'block' } }}
-            image="https://source.unsplash.com/random?developer"
+            image="https://loremflickr.com/160/250"
             alt="website"
           />
         </Card>
