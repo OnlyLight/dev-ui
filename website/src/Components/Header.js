@@ -7,11 +7,7 @@ import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
 
 function Header(props) {
-  const { sections, title, onSearch, setSearchQuery } = props;
-
-  const onSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
+  const { sections, title } = props;
 
   return (
     <React.Fragment>
@@ -27,7 +23,6 @@ function Header(props) {
         >
           {title}
         </Typography>
-        <InputBase placeholder="Search..." onChange={onSearchChange} onBlur={onSearch} />
         <Button variant="outlined" size="small">
           Sign up
         </Button>
@@ -61,9 +56,7 @@ Header.propTypes = {
       url: PropTypes.string.isRequired,
     }),
   ).isRequired,
-  title: PropTypes.string.isRequired,
-  onSearch: PropTypes.func.isRequired,
-  setSearchQuery: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired
 };
 
 export default Header;
