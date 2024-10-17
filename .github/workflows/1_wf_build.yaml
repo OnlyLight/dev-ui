@@ -3,8 +3,6 @@ name: wf_fe_build
 on:
   push:
     branches: ["main"]
-    # paths:
-    #   - "website/**"
 
 jobs:
   build:
@@ -39,3 +37,39 @@ jobs:
         run: |
           docker push ${{ vars.DOCKER_USERNAME }}/crawler-website:latest
           docker push ${{ vars.DOCKER_USERNAME }}/crawler-website:${{ env.IMAGE_TAG }}
+
+  deploy:
+    name: Deploy_${{ inputs.APP_NAME }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      IMAGE_TAG: $(git rev-parse --short HEAD)
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Checkout infra repository
+        uses: actions/checkout@v4
+        with:
+          repository: duytran2782/devguild-infra
+          ref: main
+          token: ${{ secrets.PERSONAL_TOKEN }}
+
+      - name: Update image tag helm chart
+        working-directory: helm
+        run: |
+          oldValue="tag:.*"
+          newValue="tag: ${{ env.IMAGE_TAG }}"
+
+          cd app/website/
+
+          ls -al
+          echo $(pwd)
+          sed -i "s/$oldValue/$newValue/" ./values.yaml
+          
+          git config user.email "CI@gmail.com"
+          git config user.name "CI"
+          
+          git add .
+          git commit -m "Update image to Website with tag ${{ env.IMAGE_TAG }}" || true
+          git push origin main || true
