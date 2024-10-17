@@ -39,7 +39,7 @@ jobs:
           docker push ${{ vars.DOCKER_USERNAME }}/crawler-website:${{ env.IMAGE_TAG }}
 
   deploy:
-    name: Deploy_${{ inputs.APP_NAME }}
+    name: Deploy
     runs-on: ubuntu-22.04
     timeout-minutes: 20
     env:
