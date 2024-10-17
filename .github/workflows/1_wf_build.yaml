@@ -71,7 +71,7 @@ jobs:
           newValue="tag: ${{ env.IMAGE_TAG }}"
           echo "IMAGE_TAG=${{ env.IMAGE_TAG }}"
 
-          cd app/website/
+          cd application/app/website/
 
           ls -al
           echo $(pwd)
