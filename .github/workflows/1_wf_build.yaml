@@ -60,7 +60,7 @@ jobs:
       - name: Checkout infra repository
         uses: actions/checkout@v4
         with:
-          repository: duytran2782/devguild-infra
+          repository: OnlyLight/dev-infra
           ref: main
           token: ${{ secrets.PERSONAL_TOKEN }}
 
