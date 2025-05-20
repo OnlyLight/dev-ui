@@ -1,4 +1,4 @@
-# UI resource for DevGuild-DevOps basic.
+# UI resource for DevGuild-DevOps basic
 
 # Note
 ## Diagram architecture 
