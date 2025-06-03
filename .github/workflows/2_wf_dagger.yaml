@@ -1,0 +1,43 @@
+name: wf_dagger_build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Image FE
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    outputs:
+      IMAGE_TAG: ${{ steps.out_tag.outputs.IMAGE_TAG }}
+    env:
+      IMAGE_TAG: $(git rev-parse --short HEAD)
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Overwrite .env file variables
+        run: |
+          echo "${{ vars['ENVVAR_WEBSITE'] }}" > ./website/.env
+
+          cat ./website/.env
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.24'
+
+      - name: Run dagger pipeline
+        run: |
+          go run .dagger/main.go
+        env:
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_URL: ${{ vars.DOCKER_URL }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+
+      - name: Output IMAGE_TAG for Deployment steps
+        id: out_tag
+        run: |
+          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAG=${{ env.IMAGE_TAG }}"
