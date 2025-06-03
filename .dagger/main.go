@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 
 	"dagger.io/dagger"
 )
@@ -38,6 +39,11 @@ func (p *DevUIPipeline) BuildImage(ctx context.Context, source *dagger.Directory
 
 // Publish pushes the Docker image to the registry with a given tag
 func (p *DevUIPipeline) Publish(ctx context.Context, container *dagger.Container, dockerURL, dockerUsername, dockerPassword, tag string) (string, error) {
+	// Sanitize tag to ensure valid Docker format
+	if !regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$`).MatchString(tag) {
+		return "", fmt.Errorf("invalid tag format: %s", tag)
+	}
+
 	return container.
 		WithRegistryAuth(dockerURL, dockerUsername, p.client.SetSecret("docker-password", dockerPassword)).
 		Publish(ctx, fmt.Sprintf("%s/crawler-website:%s", dockerUsername, tag))
