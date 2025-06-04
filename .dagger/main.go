@@ -25,9 +25,15 @@ func New(
 func (p *PipelineDagger) Build(
 	ctx context.Context,
 ) *dagger.Container {
+	return dag.Container().Build(p.Source)
+}
+
+func (p *PipelineDagger) UnitTest(
+	ctx context.Context,
+) (string, error) {
 	return dag.Container().Build(p.Source, dagger.ContainerBuildOpts{
-		Dockerfile: "Dockerfile",
-	})
+		Target: "build",
+	}).WithEnvVariable("CI", "true").WithExec([]string{"npm", "test"}).Stdout(ctx)
 }
 
 func (p *PipelineDagger) Publish(
@@ -51,3 +57,5 @@ func (p *PipelineDagger) Publish(
 		WithRegistryAuth(dockerURL, dockerUsername, dag.SetSecret("docker-password", dockerPassword)).
 		Publish(ctx, fmt.Sprintf("%s/crawler-website:%s", dockerUsername, tag))
 }
+
+// AIzaSyDgNeUkZnI_Df4bqL1MS7Trwm5_Mg_2jhc

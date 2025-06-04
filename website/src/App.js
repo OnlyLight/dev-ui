@@ -14,7 +14,7 @@ const sections = [
 ];
 
 // TODO remove, this demo shouldn't need to reset the theme.
-const Blog = () => {
+const App = () => {
   const [mainFeaturedPost, setMainFeaturedPost] = useState([]);
   const [featuredPosts, setFeaturedPosts] = useState([]);
 
@@ -36,21 +36,22 @@ const Blog = () => {
   return (
     <ThemeProvider theme={createTheme()}>
       <CssBaseline />
-      <Container maxWidth="lg">
-        <Header
-          title="Crawler System Testing 2"
-          sections={sections}
-        />
+      <Container maxWidth='lg'>
+        <Header title='Crawler System Testing 2' sections={sections} />
         <main>
-          <MainFeaturedPost post={mainFeaturedPost} />
+          {mainFeaturedPost.map((post, idx) => (
+            <MainFeaturedPost key={idx} post={post} />
+          ))}
           <Grid container spacing={4}>
-            {featuredPosts.map((post, idx) => <FeaturedPost key={post.title} index={idx} post={post} />)}
+            {featuredPosts.map((post, idx) => (
+              <FeaturedPost key={post.title} index={idx} post={post} />
+            ))}
           </Grid>
         </main>
       </Container>
-      <Footer title="Footer" description="Demo Crawler System" />
+      <Footer title='Footer' description='Demo Crawler System' />
     </ThemeProvider>
   );
 };
 
-export default Blog;
+export default App;
