@@ -37,9 +37,7 @@ jobs:
 
       - name: Run dagger pipeline
         run: |
-          dagger call publish --docker-username DOCKER_USERNAME --docker-password DOCKER_PASSWORD --docker-url DOCKER_URL --tag IMAGE_TAG
-        env:
-          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKER_URL: ${{ vars.DOCKER_URL }}
-          IMAGE_TAG: ${{ steps.set_tag.outputs.IMAGE_TAG }}
+          dagger call publish --docker-username ${{ vars.DOCKER_USERNAME }} \
+           --docker-password ${{ secrets.DOCKER_PASSWORD }} \
+           --docker-url ${{ vars.DOCKER_URL }} \
+           --tag ${{ steps.set_tag.outputs.IMAGE_TAG }}
