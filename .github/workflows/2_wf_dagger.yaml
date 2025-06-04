@@ -28,14 +28,16 @@ jobs:
 
           cat ./website/.env
 
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '1.24'
+      # - name: Set up Go
+      #   uses: actions/setup-go@v3
+      #   with:
+      #     go-version: '1.24'
+
+      - uses: dagger/dagger-for-github@8.0.0
 
       - name: Run dagger pipeline
         run: |
-          go run .dagger/main.go
+          dagger run go run .dagger/main.go
         env:
           DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
