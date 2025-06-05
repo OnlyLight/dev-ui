@@ -50,7 +50,7 @@ func (p *PipelineDagger) Check(
 	model string,
 ) error {
 	err := p.DebugUTIssues(ctx, githubToken, commit, model)
-	return fmt.Errorf("lint failed, attempting to debug %v", err)
+	return fmt.Errorf("Check failed, attempting to debug %v", err)
 }
 
 // Publish the built image to a container registry

@@ -35,7 +35,7 @@ func (p *PipelineDagger) DebugUT(
 // Suggest fixes to a Issues
 func (p *PipelineDagger) DebugUTIssues(
 	ctx context.Context,
-	// Github token with permissions to comment on the pull request
+	// Github Token with permissions to write issues and contents
 	githubToken *dagger.Secret,
 	// Git commit in Github
 	commit string,
