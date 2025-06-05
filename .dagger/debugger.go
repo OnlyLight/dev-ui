@@ -46,15 +46,15 @@ func (p *PipelineDagger) DebugUTIssues(
 ) error {
 	gh := dag.GithubIssue(dagger.GithubIssueOpts{Token: githubToken})
 
-	gitRef := dag.Git(p.RepoFE).Commit(commit)
-	gitSource := gitRef.Tree()
+	// gitRef := dag.Git(p.RepoFE).Commit(commit)
+	// gitSource := gitRef.Tree()
 	pr, err := gh.GetPrForCommit(ctx, p.RepoFE, commit)
 	if err != nil {
 		return err
 	}
 
-	// Set source to PR head
-	p = New(gitSource, p.RepoFE, p.RepoInfra)
+	// // Set source to PR head
+	// p = New(gitSource, p.RepoFE, p.RepoInfra)
 
 	// Suggest fix
 	suggestionDiff, err := p.DebugUT(ctx, model)
