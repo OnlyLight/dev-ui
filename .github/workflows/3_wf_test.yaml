@@ -8,12 +8,15 @@ jobs:
   build:
     name: Debug Unit Tests
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-      issues: read
-      pull-requests: write
     timeout-minutes: 20
     steps:
+      - name: Generate an agent token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Check out code
         uses: actions/checkout@v4
         with:
@@ -27,4 +30,4 @@ jobs:
         env:
           DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
