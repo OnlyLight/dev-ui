@@ -24,8 +24,9 @@ jobs:
 
       - name: Run dagger Debug
         run: |
-          dagger call check --github-token GITHUB_TOKEN --commit ${{ github.sha }} --model gemini-2.0-flash
+          dagger call check --github-token GITHUB_TOKEN --commit COMMIT_SHA --model gemini-2.0-flash
         env:
           DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          COMMIT_SHA: $(git rev-parse --short HEAD)
