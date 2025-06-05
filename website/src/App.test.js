@@ -4,7 +4,7 @@ import App from "./App";
 test("renders Crawler System Testing header", () => {
   render(<App />);
   const headerElement = screen.getByRole("heading", {
-    name: /Crawler System Testing/i,
+    name: /Crawler System Testing 3/i,
   });
   expect(headerElement).toBeInTheDocument();
 });
