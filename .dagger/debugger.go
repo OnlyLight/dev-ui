@@ -66,7 +66,10 @@ func (p *PipelineDagger) DebugUTIssues(
 	}
 
 	// Convert the diff to CodeSuggestions
-	codeSuggestions := parseDiff(suggestionDiff)
+	codeSuggestions, err := parseDiff(suggestionDiff)
+	if err != nil {
+		return err
+	}
 
 	// For each suggestion, comment on PR
 	for _, suggestion := range codeSuggestions {
