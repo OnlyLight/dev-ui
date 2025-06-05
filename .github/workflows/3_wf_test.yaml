@@ -1,9 +1,8 @@
 name: wf_dagger_test
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:
+    branches: ["**", "!main"]
 
 jobs:
   build:
