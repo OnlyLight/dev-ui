@@ -36,3 +36,5 @@ jobs:
            --docker-password ${{ secrets.DOCKER_PASSWORD }} \
            --docker-url ${{ vars.DOCKER_URL }} \
            --tag ${{ steps.set_tag.outputs.IMAGE_TAG }}
+        env:
+          DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
