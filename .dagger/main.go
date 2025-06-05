@@ -8,7 +8,9 @@ import (
 )
 
 type PipelineDagger struct {
-	Source *dagger.Directory // Shared Dagger directory
+	Source    *dagger.Directory // Shared Dagger directory
+	RepoFE    string
+	RepoInfra string
 }
 
 // New initializes the pipeline with a Dagger client
@@ -17,8 +19,14 @@ func New(
 	// +defaultPath="/website"
 	// +ignore=[".git", "**/node_modules"]
 	source *dagger.Directory,
+	// +optional
+	// +default="github.com/OnlyLight/dev-ui"
+	repoFE string,
+	// +optional
+	// +default="github.com/OnlyLight/dev-infra"
+	repoInfra string,
 ) *PipelineDagger {
-	return &PipelineDagger{Source: source}
+	return &PipelineDagger{Source: source, RepoFE: repoFE, RepoInfra: repoInfra}
 }
 
 // BuildImage builds the Docker image using the existing Dockerfile
@@ -28,14 +36,24 @@ func (p *PipelineDagger) Build(
 	return dag.Container().Build(p.Source)
 }
 
-func (p *PipelineDagger) UnitTest(
+// Run and debug the unit tests
+func (p *PipelineDagger) Check(
 	ctx context.Context,
-) (string, error) {
-	return dag.Container().Build(p.Source, dagger.ContainerBuildOpts{
-		Target: "build",
-	}).WithEnvVariable("CI", "true").WithExec([]string{"npm", "test"}).Stdout(ctx)
+	// Github token with permissions to comment on the pull request
+	// +optional
+	githubToken *dagger.Secret,
+	// git commit in github
+	// +optional
+	commit string,
+	// The model to use to debug debug tests
+	// +optional
+	model string,
+) error {
+	err := p.DebugUTIssues(ctx, githubToken, commit, model)
+	return fmt.Errorf("lint failed, attempting to debug %v", err)
 }
 
+// Publish the built image to a container registry
 func (p *PipelineDagger) Publish(
 	ctx context.Context,
 	// +optional
@@ -57,5 +75,3 @@ func (p *PipelineDagger) Publish(
 		WithRegistryAuth(dockerURL, dockerUsername, dag.SetSecret("docker-password", dockerPassword)).
 		Publish(ctx, fmt.Sprintf("%s/crawler-website:%s", dockerUsername, tag))
 }
-
-// AIzaSyDgNeUkZnI_Df4bqL1MS7Trwm5_Mg_2jhc
