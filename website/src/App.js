@@ -37,7 +37,7 @@ const App = () => {
     <ThemeProvider theme={createTheme()}>
       <CssBaseline />
       <Container maxWidth='lg'>
-        <Header title='Crawler System Testing 2' sections={sections} />
+        <Header title='Crawler System Testing 1' sections={sections} />
         <main>
           {mainFeaturedPost.map((post, idx) => (
             <MainFeaturedPost key={idx} post={post} />
