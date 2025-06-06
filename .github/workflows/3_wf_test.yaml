@@ -1,19 +1,23 @@
 name: wf_dagger_test
 
 on:
-  push:
-    branches: ["**", "!main"]
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     name: Debug Unit Tests
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-      issues: read
-      pull-requests: write
     timeout-minutes: 20
     steps:
+      - name: Generate an agent token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Check out code
         uses: actions/checkout@v4
         with:
@@ -23,8 +27,13 @@ jobs:
 
       - name: Run dagger Debug
         run: |
-          dagger call check --github-token GITHUB_TOKEN --model gemini-2.0-flash
+          # the GITHUB_SHA  is the last merge commit on the GITHUB_REF branch. This GITHUB_SHA does not exist in any current branch in repo.
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+            GITHUB_SHA=$(cat $GITHUB_EVENT_PATH | jq -r .pull_request.head.sha)
+          fi
+
+          dagger call check --github-token GH_TOKEN --commit $GITHUB_SHA
         env:
           DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}

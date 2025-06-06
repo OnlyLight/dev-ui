@@ -11,20 +11,18 @@ type CodeSuggestion struct {
 	File       string
 	Line       int
 	Suggestion []string
-	DiffHunk   string // Add diff hunk for GitHub API
 }
 
-func parseDiff(diffText string) ([]CodeSuggestion, error) {
+func parseDiff(diffText string) []CodeSuggestion {
 	var suggestions []CodeSuggestion
 	var currentFile string
 	var currentLine int
 	var newCode []string
-	var currentHunk []string
-	var inHunk bool
+	removalReached := false
 
-	// Regular expressions
+	// Regular expressions for file detection and line number parsing
 	fileRegex := regexp.MustCompile(`^\+\+\+ b/(.+)`)
-	lineRegex := regexp.MustCompile(`^@@ -(\d+),\d+ \+(\d+),\d+ @@`)
+	lineRegex := regexp.MustCompile(`^@@ .* \+(\d+),?`)
 
 	scanner := bufio.NewScanner(strings.NewReader(diffText))
 	for scanner.Scan() {
@@ -32,69 +30,60 @@ func parseDiff(diffText string) ([]CodeSuggestion, error) {
 
 		// Detect file name
 		if matches := fileRegex.FindStringSubmatch(line); matches != nil {
-			if inHunk && len(newCode) > 0 {
-				suggestions = append(suggestions, CodeSuggestion{
-					File:       currentFile,
-					Line:       currentLine,
-					Suggestion: newCode,
-					DiffHunk:   strings.Join(currentHunk, "\n"),
-				})
-				newCode = []string{}
-				currentHunk = []string{}
+			path := matches[1]
+			if !strings.HasPrefix(path, "website/") {
+				path = "website/" + path
 			}
-			currentFile = matches[1]
-			inHunk = false
+			currentFile = path
 			continue
 		}
 
-		// Detect hunk
+		// Detect modified line number in the new file
 		if matches := lineRegex.FindStringSubmatch(line); matches != nil {
-			if inHunk && len(newCode) > 0 {
+			currentLine = atoi(matches[1]) - 1 // Convert to 0-based index for tracking
+			newCode = []string{}               // Reset new code buffer
+			removalReached = false
+			continue
+		}
+
+		// Extract new code (ignoring metadata lines)
+		if strings.HasPrefix(line, "+") && !strings.HasPrefix(line, "+++") {
+			newCode = append(newCode, line[1:]) // Remove `+`
+			continue
+		}
+
+		if !removalReached {
+			currentLine++ // Track line modifications
+		}
+
+		// If a removed line (`-`) appears after `+` lines, store the suggestion
+		if strings.HasPrefix(line, "-") && !strings.HasPrefix(line, "---") {
+			if len(newCode) > 0 && currentFile != "" {
 				suggestions = append(suggestions, CodeSuggestion{
 					File:       currentFile,
 					Line:       currentLine,
 					Suggestion: newCode,
-					DiffHunk:   strings.Join(currentHunk, "\n"),
 				})
-				newCode = []string{}
-				currentHunk = []string{}
+				newCode = []string{} // Reset new code buffer
 			}
-			currentLine = atoi(matches[2]) // 1-based line number
-			inHunk = true
-			currentHunk = append(currentHunk, line)
-			continue
+			removalReached = true
 		}
 
-		if inHunk {
-			currentHunk = append(currentHunk, line)
-			if strings.HasPrefix(line, "+") && !strings.HasPrefix(line, "+++") {
-				newCode = append(newCode, strings.TrimPrefix(line, "+"))
-				currentLine++
-			} else if strings.HasPrefix(line, "-") && !strings.HasPrefix(line, "---") {
-				// Do not increment for removed lines
-			} else if strings.HasPrefix(line, " ") {
-				currentLine++ // Context lines
-			}
-		}
 	}
 
-	// Add final suggestion
-	if inHunk && len(newCode) > 0 && currentFile != "" {
+	// If there's a pending multi-line suggestion, add it
+	if len(newCode) > 0 && currentFile != "" {
 		suggestions = append(suggestions, CodeSuggestion{
 			File:       currentFile,
 			Line:       currentLine,
 			Suggestion: newCode,
-			DiffHunk:   strings.Join(currentHunk, "\n"),
 		})
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("failed to scan diff: %w", err)
-	}
-
-	return suggestions, nil
+	return suggestions
 }
 
+// Helper function to convert string to int safely
 func atoi(s string) int {
 	var i int
 	fmt.Sscanf(s, "%d", &i)

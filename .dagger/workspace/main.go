@@ -5,17 +5,27 @@ import (
 	"dagger/workspace/internal/dagger"
 )
 
+// Interface for something that can be checked
+type Checkable interface {
+	dagger.DaggerObject
+	CheckDirectory(ctx context.Context, source *dagger.Directory) (string, error)
+}
+
 type Workspace struct {
 	Work *dagger.Directory
 	// +private
 	Start *dagger.Directory
+	// +private
+	Checker Checkable
 }
 
 func New(
 	// The source directory
 	source *dagger.Directory,
+	// Checker to use for testing
+	checker Checkable,
 ) *Workspace {
-	return &Workspace{Work: source, Start: source}
+	return &Workspace{Work: source, Start: source, Checker: checker}
 }
 
 // Read a file in the Workspace
@@ -61,10 +71,7 @@ func (w *Workspace) Diff(ctx context.Context) (string, error) {
 		Stdout(ctx)
 }
 
-// Run the unit tests
-func (w *Workspace) Test(ctx context.Context) (string, error) {
-	return dag.Container().Build(w.Work, dagger.ContainerBuildOpts{
-		// Dockerfile: "./website/Dockerfile",
-		Target: "build",
-	}).WithEnvVariable("CI", "true").WithExec([]string{"npm", "test"}).Stdout(ctx)
+// Run the tests in the workspace
+func (w *Workspace) Check(ctx context.Context) (string, error) {
+	return w.Checker.CheckDirectory(ctx, w.Work)
 }
