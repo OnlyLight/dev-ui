@@ -69,7 +69,7 @@ func (p *PipelineDagger) DebugUTIssues(
 		return fmt.Errorf("debug UT failed: %w", err)
 	}
 	if strings.TrimSpace(suggestionDiff) == "" {
-		return fmt.Errorf("no suggestions found")
+		return nil
 	}
 
 	fmt.Printf("Raw diff content:\n%s\n", suggestionDiff)

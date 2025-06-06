@@ -40,6 +40,21 @@ func (p *PipelineDagger) Build(
 	return p.Frontend.Build()
 }
 
+func (p *PipelineDagger) RunTests(
+	ctx context.Context,
+) (string, error) {
+	return p.Frontend.UnitTest(ctx)
+}
+
+func (p *PipelineDagger) RunTestsWithDebug(
+	ctx context.Context,
+	// The model to use to debug debug tests
+	// +optional
+	model string,
+) (string, error) {
+	return p.DebugUT(ctx, model)
+}
+
 // Run and debug the unit tests
 func (p *PipelineDagger) Check(
 	ctx context.Context,
@@ -54,7 +69,10 @@ func (p *PipelineDagger) Check(
 	model string,
 ) error {
 	err := p.DebugUTIssues(ctx, githubToken, commit, model)
-	return fmt.Errorf("Unit tests failed, attempting to debug %v", err)
+	if err != nil {
+		return fmt.Errorf("Unit tests failed, attempting to debug %v", err)
+	}
+	return nil
 }
 
 // Publish the built image to a container registry
