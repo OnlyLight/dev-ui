@@ -6,6 +6,10 @@
   },
   "dependencies": [
     {
+      "name": "frontend",
+      "source": ".dagger/frontend"
+    },
+    {
       "name": "github-issue",
       "source": "github.com/kpenfound/dag/github-issue@github-issue/v2.0.0",
       "pin": "46246adc2083c59db0076730e86b6fda2db8261a"

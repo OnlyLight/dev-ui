@@ -8,32 +8,36 @@ import (
 )
 
 type PipelineDagger struct {
-	Source    *dagger.Directory // Shared Dagger directory
-	RepoFE    string
-	RepoInfra string
+	// +private
+	Source *dagger.Directory
+	// +private
+	RepoFE string
+	// +private
+	Frontend *dagger.Frontend
 }
 
 // New initializes the pipeline with a Dagger client
 func New(
 	// +optional
-	// +defaultPath="/website"
+	// +defaultPath="/"
 	// +ignore=[".git", "**/node_modules"]
 	source *dagger.Directory,
 	// +optional
 	// +default="github.com/OnlyLight/dev-ui"
 	repoFE string,
-	// +optional
-	// +default="github.com/OnlyLight/dev-infra"
-	repoInfra string,
 ) *PipelineDagger {
-	return &PipelineDagger{Source: source, RepoFE: repoFE, RepoInfra: repoInfra}
+	return &PipelineDagger{
+		Source:   source,
+		RepoFE:   repoFE,
+		Frontend: dag.Frontend(source.Directory("/website")),
+	}
 }
 
 // BuildImage builds the Docker image using the existing Dockerfile
 func (p *PipelineDagger) Build(
 	ctx context.Context,
 ) *dagger.Container {
-	return dag.Container().Build(p.Source)
+	return p.Frontend.Build()
 }
 
 // Run and debug the unit tests
@@ -48,8 +52,9 @@ func (p *PipelineDagger) Check(
 	// The model to use to debug debug tests
 	// +optional
 	model string,
-) (string, error) {
-	return p.DebugUT(ctx, model)
+) error {
+	err := p.DebugUTIssues(ctx, githubToken, commit, model)
+	return fmt.Errorf("Unit tests failed, attempting to debug %v", err)
 }
 
 // Publish the built image to a container registry

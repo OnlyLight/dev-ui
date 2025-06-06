@@ -18,21 +18,24 @@ func (p *PipelineDagger) DebugUT(
 	// Detailed prompt stored in markdown file
 	prompt := dag.CurrentModule().Source().File("prompts/fix_test.md")
 
+	ws := dag.Workspace(
+		p.Frontend.Source(),
+		p.Frontend.AsWorkspaceCheckable(),
+	)
+
 	// Environment with agent inputs and outputs
 	environment := dag.Env().
-		WithWorkspaceInput("workspace", dag.Workspace(p.Source), "workspace to read, write, and test code").
+		WithWorkspaceInput("workspace", ws, "workspace to read, write, and test code").
 		WithWorkspaceOutput("fixed", "workspace with fixed tests")
 
 	// Put it all together to form the agent (LLM agent that fixes the tests)
-	work := dag.LLM(dagger.LLMOpts{Model: model}).
+	return dag.LLM(dagger.LLMOpts{Model: model}).
 		WithEnv(environment).
-		WithPromptFile(prompt)
-
-	// Bind the LLM's output to the workspace output
-	environment = work.Env()
-
-	// Get output from the agent and return the diff
-	return environment.Output("fixed").AsWorkspace().Diff(ctx)
+		WithPromptFile(prompt).
+		Env(). // Bind the LLM's output to the workspace output
+		Output("fixed").
+		AsWorkspace().
+		Diff(ctx) // Get output from the agent and return the diff
 }
 
 // Suggest fixes to a Issues
@@ -49,57 +52,47 @@ func (p *PipelineDagger) DebugUTIssues(
 ) error {
 	gh := dag.GithubIssue(dagger.GithubIssueOpts{Token: githubToken})
 
+	// Determine PR head
+	gitRef := dag.Git(p.RepoFE).Commit(commit)
+	gitSource := gitRef.Tree()
 	pr, err := gh.GetPrForCommit(ctx, p.RepoFE, commit)
 	if err != nil {
 		return fmt.Errorf("failed to get PR for commit: %w", err)
 	}
 
+	// Set source to PR head
+	p = New(gitSource, p.RepoFE)
+
 	// Suggest fix
 	suggestionDiff, err := p.DebugUT(ctx, model)
 	if err != nil {
-		return fmt.Errorf("failed to debug UT: %w", err)
+		return fmt.Errorf("debug UT failed: %w", err)
 	}
-	if suggestionDiff == "" {
+	if strings.TrimSpace(suggestionDiff) == "" {
 		return fmt.Errorf("no suggestions found")
 	}
 
 	fmt.Printf("Raw diff content:\n%s\n", suggestionDiff)
 
 	// Convert the diff to CodeSuggestions
-	codeSuggestions, err := parseDiff(suggestionDiff)
-	if err != nil {
-		return fmt.Errorf("failed to parse diff: %w", err)
-	}
+	codeSuggestions := parseDiff(suggestionDiff)
 
 	fmt.Printf("Number of suggestions: %d\n", len(codeSuggestions))
 
 	// For each suggestion, comment on PR
-	for i, suggestion := range codeSuggestions {
-		// Ensure we have a valid file path (remove any 'b/' prefix that git diff adds)
-		filePath := strings.TrimPrefix(suggestion.File, "b/")
-
-		fmt.Printf("\nSuggestion %d:\n", i+1)
-		fmt.Printf("File: %s\n", filePath)
-		fmt.Printf("Line: %d\n", suggestion.Line)
-		fmt.Printf("DiffHunk:\n%s\n", suggestion.DiffHunk)
-		fmt.Printf("Suggestion:\n%s\n", strings.Join(suggestion.Suggestion, "\n"))
-
-		// Create the comment with the required diff_hunk
-		comment := fmt.Sprintf("```diff\n%s\n```\n\n```suggestion\n%s\n```",
-			suggestion.DiffHunk,
-			strings.Join(suggestion.Suggestion, "\n"))
-
+	for _, suggestion := range codeSuggestions {
+		markupSuggestion := "```suggestion\n" + strings.Join(suggestion.Suggestion, "\n") + "\n```"
 		err := gh.WritePullRequestCodeComment(
 			ctx,
 			p.RepoFE,
 			pr,
 			commit,
-			comment,
-			filePath,
+			markupSuggestion,
+			suggestion.File,
 			"RIGHT",
 			suggestion.Line)
 		if err != nil {
-			return fmt.Errorf("failed to write PR comment for file %s at line %d: %w", filePath, suggestion.Line, err)
+			return err
 		}
 	}
 	return nil
