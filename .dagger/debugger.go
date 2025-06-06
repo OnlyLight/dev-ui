@@ -80,7 +80,15 @@ func (p *PipelineDagger) DebugUTIssues(
 	fmt.Printf("Number of suggestions: %d\n", len(codeSuggestions))
 
 	// For each suggestion, comment on PR
-	for _, suggestion := range codeSuggestions {
+	for i, suggestion := range codeSuggestions {
+		fmt.Printf("Suggestion %d: File=%s, Line=%d\n", i+1, suggestion.File, suggestion.Line)
+		if suggestion.File == "" {
+			return fmt.Errorf("invalid suggestion: empty file path")
+		}
+		if suggestion.Line < 1 {
+			return fmt.Errorf("invalid suggestion: line %d in %s", suggestion.Line, suggestion.File)
+		}
+
 		markupSuggestion := "```suggestion\n" + strings.Join(suggestion.Suggestion, "\n") + "\n```"
 		err := gh.WritePullRequestCodeComment(
 			ctx,
@@ -90,7 +98,8 @@ func (p *PipelineDagger) DebugUTIssues(
 			markupSuggestion,
 			suggestion.File,
 			"RIGHT",
-			suggestion.Line)
+			suggestion.Line,
+		)
 		if err != nil {
 			return err
 		}

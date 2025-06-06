@@ -30,7 +30,11 @@ func parseDiff(diffText string) []CodeSuggestion {
 
 		// Detect file name
 		if matches := fileRegex.FindStringSubmatch(line); matches != nil {
-			currentFile = matches[1]
+			path := matches[1]
+			if !strings.HasPrefix(path, "website/") {
+				path = "website/" + path
+			}
+			currentFile = path
 			continue
 		}
 
