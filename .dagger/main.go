@@ -48,9 +48,8 @@ func (p *PipelineDagger) Check(
 	// The model to use to debug debug tests
 	// +optional
 	model string,
-) error {
-	err := p.DebugUTIssues(ctx, githubToken, commit, model)
-	return fmt.Errorf("Check failed, attempting to debug %v", err)
+) (string, error) {
+	return p.DebugUT(ctx, model)
 }
 
 // Publish the built image to a container registry
