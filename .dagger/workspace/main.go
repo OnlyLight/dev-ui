@@ -64,6 +64,7 @@ func (w *Workspace) Diff(ctx context.Context) (string, error) {
 // Run the unit tests
 func (w *Workspace) Test(ctx context.Context) (string, error) {
 	return dag.Container().Build(w.Work, dagger.ContainerBuildOpts{
+		// Dockerfile: "./website/Dockerfile",
 		Target: "build",
 	}).WithEnvVariable("CI", "true").WithExec([]string{"npm", "test"}).Stdout(ctx)
 }
