@@ -1,3 +1,7 @@
+# Run test locally with act
+# act --secret-file my.secrets --var-file my.variables -W ".github/workflows/1_wf_build.yaml" -p=false
+# -p=false to avoid unnecessary image pulls
+# link act on wsl windows unbuntu: (user root) cd ~/.config/act/
 name: wf_fe_build
 
 on:

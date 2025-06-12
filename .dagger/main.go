@@ -40,12 +40,14 @@ func (p *PipelineDagger) Build(
 	return p.Frontend.Build()
 }
 
+// Only run the tests
 func (p *PipelineDagger) RunTests(
 	ctx context.Context,
 ) (string, error) {
 	return p.Frontend.UnitTest(ctx)
 }
 
+// Run the tests with debug no push comment to github
 func (p *PipelineDagger) RunTestsWithDebug(
 	ctx context.Context,
 	// The model to use to debug debug tests
